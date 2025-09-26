@@ -7,6 +7,62 @@ from datetime import datetime
 HOST = '0.0.0.0'  # Listen on all available network interfaces
 PORT = 9999       # Port for our gateway service
 
+def pixel_to_char(pixel_value, char_ramp='.:-=+*#%@'):
+    """
+    Takes a grayscale pixel value (0-255) and maps it to a character from the ramp.
+    """
+    # Ensure pixel value is within bounds
+    pixel_value = max(0, min(255, pixel_value))
+    # Map to character index
+    char_index = int((pixel_value / 255) * (len(char_ramp) - 1))
+    return char_ramp[char_index]
+
+def create_irene_art():
+    """
+    Creates ASCII art of Irene using symbols - devil horns, skull, white face, devil tail
+    """
+    irene = [
+        "    @@#       #@@      ",
+        "   @@@#       #@@@     ",
+        "  @@@@  %###%  @@@@    ",
+        " @@@@@  %***%  @@@@@   ",
+        "@@@@@@@@@@@@@@@@@@@@@@  ",
+        "@@@                @@@  ",
+        "@@  ***       ***  @@  ",
+        "@@     @@@@@@@     @@  ",
+        "@@     @  =  @     @@  ",
+        "@@       ---       @@  ",
+        " @@@             @@@   ",
+        "  @@@@         @@@@    ",
+        "    @@@@@@@@@@@@@      ",
+    ]
+    return "\n".join(irene)
+
+def create_maeko_art():
+    """
+    Creates ASCII art of Maeko using symbols - pink bow, whiskers, yellow nose, pink outfit
+    """
+    maeko = [
+        "        @@@@@@@@        ",
+        "      @@@%%%%%%@@@      ",
+        "     @@%%%%%%%%%@@      ",
+        "   @@@             @@@  ",
+        "  @@  ---   ---     @@  ",
+        " @@   ---   ---      @@ ",
+        " @@      ***         @@ ",
+        " @@       o          @@ ",
+        " @@                  @@ ",
+        "  @@               @@   ",
+        "   @@@           @@@    ",
+        "     @@@@@@@@@@@@@      ",
+        "     @@%%%%%%%%%@@      ",
+        "    @@%%%%%%%%%%%@@     ",
+        "   @@%%%%%%%%%%%%%@@    ",
+        "   @@             @@    ",
+        "   @@             @@    "
+    ]
+    return "\n".join(maeko)
+
 def get_system_info():
     """
     This function gathers the required system information.
@@ -32,9 +88,26 @@ def get_system_info():
 
     # Get current timestamp
     timestamp = datetime.now().isoformat()
+    
+    # Get current time and check if minute is odd or even
+    current_datetime = datetime.now()
+    current_time = current_datetime.strftime("%H:%M:%S")
+    current_minute = current_datetime.minute
+    
+    # Determine character and message based on odd/even minute
+    if current_minute % 2 == 1:  # Odd minute
+        character_art = create_irene_art()
+        character_message = "The minute is odd! Irene is odd!"
+    else:  # Even minute
+        character_art = create_maeko_art()
+        character_message = "The minute is even! Maeko is going to get even!"
 
     # Structure the data
     info = {
+        "message": current_time,
+        "character_art": character_art,
+        "character_message": character_message,
+        "current_minute": current_minute,
         "device_mac_address": mac_addr_output,
         "timestamp_utc": timestamp,
         "system_uptime": uptime_output
@@ -56,14 +129,23 @@ def handle_client(conn, addr):
 
             print(f"Received request from {addr}: {request}")
 
-            ## --- TODO: YOUR CODE GOES HERE --- ##
-            # 1. Check if the client's request is valid (e.g., is it "GET_DATA"?).
-            # 2. If the request is valid, call the get_system_info() function to get the data.
-            # 3. Choose a data format (JSON is recommended) and serialize the data into a string.
-            #    For example, using the json library: json.dumps(your_data_dictionary)
-            # 4. Encode the serialized string to bytes and send it back to the client.
-            #    Example: conn.sendall(formatted_data.encode('utf-8'))
-            # 5. If the request is not valid, you could send back an error message.
+            # Check if the client's request is valid
+            if request.strip() == "GET_DATA":
+                # Request is valid, get system information
+                system_data = get_system_info()
+                
+                # Serialize the data to JSON format
+                json_response = json.dumps(system_data)
+                
+                # Encode and send the response back to the client
+                conn.sendall(json_response.encode('utf-8'))
+                print(f"Sent system data to {addr}")
+            else:
+                # Request is not valid, send error message
+                error_message = json.dumps({"error": "Invalid request. Expected 'GET_DATA'."})
+                conn.sendall(error_message.encode('utf-8'))
+                print(f"Sent error message to {addr} for invalid request: {request}")
+            
             ## --- END OF TODO --- ##
 
     print(f"[CONNECTION CLOSED] {addr} disconnected.")

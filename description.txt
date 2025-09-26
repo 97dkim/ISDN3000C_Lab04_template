@@ -1,0 +1,70 @@
+ISDN3000C Lab04 - Maeko & Irene Monitoring System
+Network Setup and Data Format Description
+
+=== NETWORK SETUP ===
+
+Server Configuration:
+- Host: 0.0.0.0 (listens on all available network interfaces)
+- Port: 9999
+- Protocol: TCP
+- Architecture: Multi-threaded server using Python's threading module
+
+Client Configuration:
+- Server IP: 192.168.50.54 (configured for RDK-X5 device)
+- Server Port: 9999
+- Connection Type: TCP socket connection
+- Connection Pattern: Connects every 60 seconds, sends request, receives response, then disconnects
+
+Network Flow:
+1. Client establishes TCP connection to server
+2. Client sends "GET_DATA" request as UTF-8 encoded string
+3. Server processes request and gathers system information
+4. Server responds with JSON-formatted data
+5. Connection is closed automatically using Python's 'with' statement
+
+=== DATA FORMAT ===
+
+Format Choice: JSON (JavaScript Object Notation)
+Reasoning: JSON was selected because it is:
+- Human-readable and easy to debug
+- Language-agnostic standard for data exchange
+- Native support in Python via json.dumps() and json.loads()
+- Structured format that can handle nested data
+- Lightweight compared to XML alternatives
+
+Request Format:
+Plain text string: "GET_DATA"
+
+Response Format:
+JSON object containing the following fields:
+{
+    "message": "14:30:25",                    // Current time (HH:MM:SS)
+    "character_art": "ASCII art string...",   // Multi-line ASCII art
+    "character_message": "Character text...", // Time-based character message
+    "current_minute": 30,                     // Current minute (0-59)
+    "device_mac_address": "aa:bb:cc:dd:ee:ff", // MAC address of eth0
+    "timestamp_utc": "2025-09-26T14:30:25.123456", // ISO format timestamp
+    "system_uptime": "up 2 days, 4 hours, 30 minutes" // System uptime
+}
+
+Character Logic:
+- Odd minutes (1,3,5,7,9...): Displays "Irene" with devil-themed ASCII art
+- Even minutes (0,2,4,6,8...): Displays "Maeko" with bow-themed ASCII art
+- Character selection based on: current_minute % 2
+
+Error Handling:
+Invalid requests receive JSON error response:
+{
+    "error": "Invalid request. Expected 'GET_DATA'."
+}
+
+Data Encoding:
+- All data transmitted as UTF-8 encoded bytes over TCP
+- JSON serialization ensures consistent data structure
+- Automatic handling of special characters in ASCII art
+
+System Information Gathering:
+- MAC Address: Retrieved via subprocess call to 'cat /sys/class/net/eth0/address'
+- Uptime: Retrieved via subprocess call to 'uptime -p'
+- Timestamp: Generated using Python's datetime.now().isoformat()
+- Fallback values provided if system commands fail

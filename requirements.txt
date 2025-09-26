@@ -1,0 +1,23 @@
+# ISDN3000C Lab04 - Maeko & Irene Monitoring System
+# Requirements file
+
+# This project uses only Python standard library modules.
+# No external dependencies are required.
+
+# Python Standard Library modules used:
+# - socket (TCP networking)
+# - threading (multi-client support)
+# - subprocess (system information gathering)
+# - json (data serialization)
+# - datetime (timestamp generation)
+# - time (client timing control)
+
+# Python version requirement
+# Tested with Python 3.6+
+python>=3.6
+
+# Optional development dependencies (uncomment if needed for development)
+# pytest>=6.0.0          # For unit testing
+# flake8>=3.8.0          # For code linting
+# black>=21.0.0          # For code formatting
+# mypy>=0.812            # For type checking
